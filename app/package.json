@@ -1,0 +1,17 @@
+{
+  "name": "nw",
+  "version": "1.0.0",
+  "description": "Control an Atem Mixer with a LaunchControl XL Midi Panel",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Anton Schubert",
+  "license": "MIT",
+  "webkit": {
+    "plugin": true
+  },
+  "dependencies": {
+    "midi": "^0.9.4"
+  }
+}

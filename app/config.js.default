@@ -1,0 +1,6 @@
+module.exports = {
+    atemIP: '127.0.0.1',
+    keyboard: true,
+    midi: true,
+    gpio: true,
+}
