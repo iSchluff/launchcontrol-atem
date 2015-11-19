@@ -1,46 +1,26 @@
+var _ = require('lodash');
+var os = require('os');
 var midi = require('midi');
 var atem = require('./atem.js');
-var config = require('./config.js');
 var LaunchControl = require('./launchcontrol.js');
-
-// var stdin = process.stdin;
-// require('tty').setRawMode(true);
-// var looog= function(title, msg){
-//     console.log()
-// }
+var EventEmitter = require('events');
+var events = new EventEmitter();
 
 var log= {
     midi: console.log.bind(console, 'MIDI -'),
     atem: console.log.bind(console, 'ATEM -')
 };
 
-/* Keyboard Mode */
-var enableKeyboard = function(){
-    process.stdin.setRawMode(true);
-    process.stdin.on('data', function (buffer) {
-        var s= "";
-        for(var i=0; i<buffer.length; i++){
-            s+=  String(buffer[i]) + " ";
-        }
-        console.log(s);
-        if(buffer.length == 1){
-            if(buffer[0] == 3)
-                process.exit(0);
-            else if(buffer[0] > 48 && buffer[0] < 58)
-                atem.setPreview(buffer[0] - 48)
-            else if(buffer[0] == 99)
-                atem.cut();
-            else if(buffer[0] == 97)
-                atem.auto();
-        }
-
-        // process.stdout.write('Get Chunk: ' + buffer.toString() + '\n');
-        // if (key && key.ctrl && key.name == 'c') process.exit();
-    });
+/* GuiState */
+var state = {
+	atemState: "disconnected",
+	midiState: "disconnected"
 }
 
-if(config.keyboard && process.stdin.setRawMode)
-    enableKeyboard();
+var setState = function(newState){
+	_.extend(state, newState);
+	events.emit('statechange', state);
+}
 
 /* MIDI connection */
 var first = true;
@@ -63,7 +43,7 @@ var probeMidi = function(print){
             ports.in = i;
     }
     for(var i=0; i<output.getPortCount(); i++){
-        var portname = input.getPortName(i);
+        var portname = output.getPortName(i);
         if(print)
             log.midi('\tOUT: \tPort', i, portname);
         if(portname.match(/Launch Control XL/))
@@ -87,20 +67,28 @@ var tryMidi = function(){
     if(first)
         log.midi('Ports In:', input.getPortCount(), 'Out:', output.getPortCount());
     var ports = probeMidi(first);
-    if(ports.in && ports.out){
+    if(!isNaN(ports.in) && !isNaN(ports.out)){
         if(!midiConnected){
+			setState({midiState: "connected"});
             midiConnected = true;
             log.midi('Connected');
             input.openPort(ports.in);
             output.openPort(ports.out);
+			sendMidiMessage(LaunchControl.led('pad1', 0, 'lightRed', 0));
+			sendMidiMessage(LaunchControl.led('pad2', 0, 'lightGreen', 0));
         }
     }else{
+		setState({midiState: "disconnected"});
         if(first)
             log.midi('Launchpad not found, will keep searching for it');
 
         if(midiConnected){
+			midiConnected = false;
+			clearInterval(midiInterval);
+			setState({midiState: "midi disconnected - please restart as reconnect is not supported atm"});
             input.closePort();
             output.closePort();
+			
         }
     }
     first = false;
@@ -117,13 +105,8 @@ process.on('exit', function(code){
     }
 });
 
-if(config.midi){
-    midiInterval = setInterval(tryMidi, 3000);
-    tryMidi();
-}
-
-/* Connect to Atem */
-atem.connect(config.atemIP);
+midiInterval = setInterval(tryMidi, 3000);
+tryMidi();
 
 /* LaunchControl Button Tally */
 var TALLY_PROGRAM = 1;
@@ -139,6 +122,12 @@ atem.events.on('tallyByIndex', function(count, tally){
     }
     sendMidiMessages(messages);
 });
+
+/* Get Atem Status */
+atem.events.on('connectionStateChange', function(atemState){
+	setState({atemState: atemState})
+});
+
 
 /* Map atem events to launchControl leds */
 atem.events.on('transitionPreview', function(enabled){
@@ -164,7 +153,7 @@ input.on('message', function(deltaTime, message) {
         return;
     }
 
-    // console.log('m:', msg);
+    console.log('m:', msg);
 
     if(msg.type == 'on'){
         if(msg.name == 'pad1'){
@@ -211,3 +200,12 @@ process.on('uncaughtException', function(err) {
     console.log('foo', err)
     return true;
 })
+
+/* Define Public API */
+exports.events = events;
+exports.getState = function(){
+	return state;
+}
+exports.connectAtem = function(ip){
+	atem.connect(ip);
+}

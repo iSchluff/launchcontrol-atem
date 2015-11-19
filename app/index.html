@@ -1,16 +1,72 @@
 <html>
   <head>
-    <title>Hello World!</title>
+    <title>ATEM - Midi</title>
+	<link rel='stylesheet' href='css/normalize.css'>
+	<link rel='stylesheet' href='css/main.css'>
   </head>
   <body>
-    <h1>Hello World!</h1>
+    <h1>ATEM - Midi</h1>
+	<script type='text/template' id='template'>
+		<div><strong>Atem:</strong> <%= atemState %></div>
+		<div><strong>LaunchControl:</strong> <%= midiState %></div>
+	</script>
+	
+	<div class='address'>
+		<input type='text' class='addressInput'><button onclick='handleClick(event)'>Connect to ATEM</button>
+	</div>
+	<div class='container'></div>
 
     <script>
-      // var gui = require('nw.gui');
-      // menu(gui);
-      // var foo = require("midi");
-      require('./app.js');
+		var _ = require('lodash');
+		var fs = require('fs');
+		var temp = require('temp');
+		var path = require('path');
+		var addressPath = path.join(path.dirname(process.execPath), 'address.txt');
+		
+		console.log('path', addressPath)
+		
+		/* Setup Template */
+		var ejs = require('ejs');
+		var src = document.getElementById('template');
+		var template = ejs.compile(src.innerHTML, {client: true});
+		
+		/* Get Elements */
+		var container = document.querySelector('.container');
+		var input = document.querySelector('.addressInput');
+		
+		var app = require('./app.js');
+		var state = _.extend({
+		}, app.getState());
+		
+		try {
+			var address = fs.readFileSync(addressPath, {encoding: 'utf8'})
+			input.value = address;
+		} catch (error) {
+			if(error.code != 'ENOENT')
+				console.error(error);
+		}
 
+		var render = _.throttle(function(){
+			console.log('render', state)
+			container.innerHTML = template(state);
+		}, 20);
+		
+		window.handleClick= function(event){
+			event.preventDefault();
+			var address = input.value;
+			app.connectAtem(address);
+			console.log('trying to connect to', address);
+			fs.writeFile(addressPath, address, function(err){
+				if(err)
+					return console.error(err);
+			})
+		}
+
+		app.events.on('statechange', function(appState){
+			_.extend(state, appState);
+			render();
+		});
+		render();
     </script>
   </body>
 </html>

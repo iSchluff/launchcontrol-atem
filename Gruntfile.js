@@ -2,8 +2,9 @@ module.exports = function(grunt) {
   grunt.initConfig({
     nwjs: {
       options: {
-        version: '0.12.1',
-        platforms: ['win', 'osx'],
+        version: '0.12.3',
+        platforms: ['win'],
+		    toolbar: 'false',
         buildDir: './build', // Where the build version of my NW.js app is saved
       },
       src: ['./app/**/*'] // Your NW.js app

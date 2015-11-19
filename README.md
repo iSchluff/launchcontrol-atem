@@ -1,6 +1,17 @@
+# LaunchControl Atem
 
+## Build Instructions:
 
-gpio on raspberry
-- https://github.com/quick2wire/quick2wire-gpio-admin.git
-- with patch https://github.com/rexington/quick2wire-gpio-admin/commit/e1974dd197573a0a846a9fbe35d9f3ff1cbb3884
-- make sure to always close gpios
+#### Prerequisites
+The midi module has to be compiled natively with nw-gyp. This requires Python2 and a working C++ compiler.
+
+```npm install -g nw-gyp grunt-cli```
+
+#### Linux
+```npm install && cd app && npm install```
+
+#### Windows (with Visual Studio 2013 Express)
+```npm install && cd app && npm install --msvs_version=2013e```
+
+###### 32 Bit
+add ```--arch=ia32```

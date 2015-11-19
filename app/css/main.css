@@ -1,0 +1,29 @@
+body{
+	padding: 25px;
+	max-width: 800px;
+	margin: 0 auto;
+	color: #444;
+}
+
+input{
+	display: inline-block;
+	background: #eee;
+	border: 0;
+	padding: 6px 10px;
+	margin-right: 10px;
+}
+
+button{
+	background: #3D81AB;
+	color: white;
+	border: 0;
+	padding: 6px 10px;
+}
+
+button:hover{
+	background: #376988;
+}
+
+.address{
+	margin-bottom: 15px;
+}

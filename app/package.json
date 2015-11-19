@@ -4,6 +4,7 @@
   "description": "Control an Atem Mixer with a LaunchControl XL Midi Panel",
   "main": "index.html",
   "scripts": {
+    "postinstall": "cd node_modules/midi && nw-gyp rebuild --target=0.12.3",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Anton Schubert",
@@ -12,6 +13,8 @@
     "plugin": true
   },
   "dependencies": {
+    "ejs": "^2.3.4",
+    "lodash": "^3.10.1",
     "midi": "^0.9.4"
   }
 }

@@ -12,6 +12,7 @@ mixer.on('Warn', function(data){
 
 mixer.on('connectionStateChange', function(state){
     console.log('Atem State:', state.description);
+	events.emit('connectionStateChange', state.description);
 });
 
 // Tally by Index
