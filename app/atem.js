@@ -44,6 +44,12 @@ mixer.on('TrSS', function(data){
     events.emit('nextTransitionChange', data[1], data[2]);
 });
 
+// Transition Position
+mixer.on('TrPs', function(data){
+    events.emit('transitionPosition', !!data[1], data.readUInt16BE(4) / 10000);
+});
+
+
 // Transition Mix
 mixer.on('TMxP', function(data){
     events.emit('transitionMixRate', data[1]);

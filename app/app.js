@@ -88,7 +88,7 @@ var tryMidi = function(){
 			setState({midiState: "midi disconnected - please restart as reconnect is not supported atm"});
             input.closePort();
             output.closePort();
-			
+
         }
     }
     first = false;
@@ -144,6 +144,11 @@ atem.events.on('nextTransitionChange', function(style, map){
 atem.events.on('transitionMixRate', function(value){
     var color = LaunchControl.colorWheel[Math.floor(value/250 * LaunchControl.colorWheel.length)]
 });
+
+atem.events.on('transitionPosition', _.throttle(function(inTransition, position){
+    var color = inTransition ? 'lightAmber'  : 'off'
+    sendMidiMessage(LaunchControl.led('misc', 1, color, 0));
+}, 30));
 
 /* LaunchControl MIDI Handler */
 var transitionReverse = false;
